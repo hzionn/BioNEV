@@ -4,7 +4,8 @@ import tensorflow as tf
 
 from bionev.GAE.layers import GraphConvolution, GraphConvolutionSparse, InnerProductDecoder
 
-flags = tf.app.flags
+# flags = tf.app.flags
+flags = tf.compat.v1.flags
 FLAGS = flags.FLAGS
 
 
