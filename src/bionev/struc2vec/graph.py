@@ -165,25 +165,27 @@ def load_adjacencylist(file_, undirected=False, chunksize=10000, unchecked=True)
     with open(file_) as f:
         with ProcessPoolExecutor(max_workers=cpu_count()) as executor:
             total = 0
-            for idx, adj_chunk in enumerate(executor.map(parse_func, grouper(int(chunksize), f))):
+            for idx, adj_chunk in enumerate(
+                executor.map(parse_func, grouper(int(chunksize), f))
+            ):
                 adjlist.extend(adj_chunk)
                 total += len(adj_chunk)
 
     t1 = time()
 
-    logging.info('Parsed {} edges with {} chunks in {}s'.format(total, idx, t1 - t0))
+    logging.info("Parsed {} edges with {} chunks in {}s".format(total, idx, t1 - t0))
 
     t0 = time()
     G = convert_func(adjlist)
     t1 = time()
 
-    logging.info('Converted edges to graph in {}s'.format(t1 - t0))
+    logging.info("Converted edges to graph in {}s".format(t1 - t0))
 
     if undirected:
         t0 = time()
         G = G.make_undirected()
         t1 = time()
-        logging.info('Made graph undirected in {}s'.format(t1 - t0))
+        logging.info("Made graph undirected in {}s".format(t1 - t0))
 
     return G
 
@@ -192,7 +194,7 @@ def load_edgelist(file_, undirected=True):
     G = Graph()
     with open(file_) as f:
         for l in f:
-            if (len(l.strip().split()[:2]) > 1):
+            if len(l.strip().split()[:2]) > 1:
                 x, y = l.strip().split()[:2]
                 x = int(x)
                 y = int(y)

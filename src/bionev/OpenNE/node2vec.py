@@ -4,10 +4,14 @@ from gensim.models import Word2Vec
 
 from bionev.OpenNE import walker
 
+# TODO: fix tensorflow version conflicts
+
 
 class Node2vec(object):
 
-    def __init__(self, graph, path_length, num_paths, dim, p=1.0, q=1.0, dw=False, **kwargs):
+    def __init__(
+        self, graph, path_length, num_paths, dim, p=1.0, q=1.0, dw=False, **kwargs
+    ):
 
         kwargs["workers"] = kwargs.get("workers", 1)
         if dw:
@@ -19,12 +23,12 @@ class Node2vec(object):
         if dw:
             self.walker = walker.BasicWalker(graph, workers=kwargs["workers"])
         else:
-            self.walker = walker.Walker(
-                graph, p=p, q=q, workers=kwargs["workers"])
+            self.walker = walker.Walker(graph, p=p, q=q, workers=kwargs["workers"])
             print("Preprocess transition probs...")
             self.walker.preprocess_transition_probs()
         sentences = self.walker.simulate_walks(
-            num_walks=num_paths, walk_length=path_length)
+            num_walks=num_paths, walk_length=path_length
+        )
         kwargs["sentences"] = sentences
         kwargs["min_count"] = kwargs.get("min_count", 0)
         kwargs["size"] = kwargs.get("size", dim)
@@ -39,10 +43,9 @@ class Node2vec(object):
         del word2vec
 
     def save_embeddings(self, filename):
-        fout = open(filename, 'w')
+        fout = open(filename, "w")
         node_num = len(self.vectors.keys())
         fout.write("{} {}\n".format(node_num, self.size))
         for node, vec in self.vectors.items():
-            fout.write("{} {}\n".format(node,
-                                        ' '.join([str(x) for x in vec])))
+            fout.write("{} {}\n".format(node, " ".join([str(x) for x in vec])))
         fout.close()

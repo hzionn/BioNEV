@@ -3,12 +3,16 @@
 import numpy as np
 import tensorflow as tf
 
+tf.compat.v1.disable_eager_execution()
+
 __author__ = "Wang Binlu"
 __email__ = "wblmail@whu.edu.cn"
 
 
 class GraphFactorization(object):
-    def __init__(self, graph, rep_size=128, epoch=120, learning_rate=0.003, weight_decay=1.):
+    def __init__(
+        self, graph, rep_size=128, epoch=120, learning_rate=0.003, weight_decay=1.0
+    ):
         self.g = graph
 
         self.node_size = graph.G.number_of_nodes()
@@ -32,42 +36,59 @@ class GraphFactorization(object):
         look_up = self.g.look_up_dict
         adj = np.zeros((node_size, node_size))
         for edge in self.g.G.edges():
-            adj[look_up[edge[0]]][look_up[edge[1]]] = self.g.G[edge[0]][edge[1]]['weight']
+            adj[look_up[edge[0]]][look_up[edge[1]]] = self.g.G[edge[0]][edge[1]][
+                "weight"
+            ]
         return adj
 
     def get_train(self):
 
         adj_mat = self.adj_mat
 
-        mat_mask = 1. * (adj_mat > 0)
+        mat_mask = 1.0 * (adj_mat > 0)
 
-        _embeddings = tf.Variable(tf.contrib.layers.xavier_initializer()([self.node_size, self.rep_size]),
-                                  dtype=tf.float32, name='embeddings')
+        _embeddings = tf.Variable(
+            tf.compat.v1.initializers.glorot_uniform()([self.node_size, self.rep_size]),
+            dtype=tf.float32,
+            name="embeddings",
+        )
 
-        Adj = tf.placeholder(tf.float32, [self.node_size, self.node_size], name='adj_mat')
-        AdjMask = tf.placeholder(tf.float32, [self.node_size, self.node_size], name='adj_mask')
+        Adj = tf.compat.v1.placeholder(
+            tf.float32, [self.node_size, self.node_size], name="adj_mat"
+        )
+        AdjMask = tf.compat.v1.placeholder(
+            tf.float32, [self.node_size, self.node_size], name="adj_mask"
+        )
 
         cost = tf.reduce_sum(
-            tf.square(Adj - tf.matmul(_embeddings, tf.transpose(_embeddings)) * AdjMask)) + \
-               self.lamb * tf.reduce_sum(tf.square(_embeddings))
+            tf.square(Adj - tf.matmul(_embeddings, tf.transpose(_embeddings)) * AdjMask)
+        ) + self.lamb * tf.reduce_sum(tf.square(_embeddings))
 
-        optimizer = tf.train.AdamOptimizer(self.lr)
+        optimizer = tf.compat.v1.train.AdamOptimizer(self.lr)
         train_op = optimizer.minimize(cost)
 
-        init = tf.global_variables_initializer()
+        init = tf.compat.v1.global_variables_initializer()
         self.sess.run(init)
 
         print("total iter: %i" % self.max_iter)
         for step in range(self.max_iter):
             self.sess.run(train_op, feed_dict={Adj: adj_mat, AdjMask: mat_mask})
             if step % 50 == 0:
-                print("step %i: cost: %g" % (step, self.sess.run(cost, feed_dict={Adj: adj_mat, AdjMask: mat_mask})))
+                print(
+                    "step %i: cost: %g"
+                    % (
+                        step,
+                        self.sess.run(
+                            cost, feed_dict={Adj: adj_mat, AdjMask: mat_mask}
+                        ),
+                    )
+                )
         return self.sess.run(_embeddings)
 
     def save_embeddings(self, filename):
-        fout = open(filename, 'w')
+        fout = open(filename, "w")
         node_num = len(self.vectors)
         fout.write("{} {}\n".format(node_num, self.rep_size))
         for node, vec in self.vectors.items():
-            fout.write("{} {}\n".format(node, ' '.join([str(x) for x in vec])))
-        fout.close()
+            fout.write("{} {}\n".format(node, " ".join([str(x) for x in vec])))
+        fout.close

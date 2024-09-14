@@ -26,7 +26,9 @@ class LaplacianEigenmaps(object):
         look_up = self.g.look_up_dict
         adj = np.zeros((node_size, node_size))
         for edge in self.g.G.edges():
-            adj[look_up[edge[0]]][look_up[edge[1]]] = self.g.G[edge[0]][edge[1]]['weight']
+            adj[look_up[edge[0]]][look_up[edge[1]]] = self.g.G[edge[0]][edge[1]][
+                "weight"
+            ]
         return adj
 
     def getLap(self):
@@ -41,29 +43,25 @@ class LaplacianEigenmaps(object):
         #
         # norm_lap_mat = np.matmul(np.matmul(deg_trans, L), deg_trans)
         G = self.g.G.to_undirected()
-        print('begin norm_lap_mat')
+        print("begin norm_lap_mat")
         norm_lap_mat = nx.normalized_laplacian_matrix(G)
-        print('finish norm_lap_mat')
+        print("finish norm_lap_mat")
         return norm_lap_mat
 
     def get_train(self):
         lap_mat = self.getLap()
-        print('finish getLap...')
-        w, vec = eigsh(lap_mat, k=self.rep_size)
-        print('finish eigh(lap_mat)...')
-        # start = 0
-        # for i in range(self.node_size):
-        #     if w[i] > 1e-10:
-        #         start = i
-        #         break
-        # vec = vec[:, start:start+self.rep_size]
-
+        print("finish getLap...")
+        k = min(self.rep_size, lap_mat.shape[0] - 1)
+        if k <= 0:
+            raise ValueError("something just wrong")
+        w, vec = eigsh(lap_mat, k=k)
+        print("finish eigh(lap_mat)...")
         return vec
 
     def save_embeddings(self, filename):
-        fout = open(filename, 'w')
-        node_num = len(self.vectors)
-        fout.write("{} {}\n".format(node_num, self.rep_size))
-        for node, vec in self.vectors.items():
-            fout.write("{} {}\n".format(node, ' '.join([str(x) for x in vec])))
-        fout.close()
+        with open(filename, "w") as fout:
+            node_num = len(self.vectors)
+            fout.write("{} {}\n".format(node_num, self.rep_size))
+            for node, vec in self.vectors.items():
+                vec = " ".join([str(x) for x in vec])
+                fout.write("{} {}\n".format(node, vec))

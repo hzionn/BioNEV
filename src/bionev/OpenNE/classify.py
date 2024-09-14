@@ -68,14 +68,14 @@ class Classifier(object):
 
 
 def load_embeddings(filename):
-    fin = open(filename, 'r')
+    fin = open(filename, "r")
     node_num, size = [int(x) for x in fin.readline().strip().split()]
     vectors = {}
     while 1:
         l = fin.readline()
-        if l == '':
+        if l == "":
             break
-        vec = l.strip().split(' ')
+        vec = l.strip().split(" ")
         assert len(vec) == size + 1
         vectors[vec[0]] = [float(x) for x in vec[1:]]
     fin.close()
@@ -84,14 +84,14 @@ def load_embeddings(filename):
 
 
 def read_node_label(filename):
-    fin = open(filename, 'r')
+    fin = open(filename, "r")
     X = []
     Y = []
     while 1:
         l = fin.readline()
-        if l == '':
+        if l == "":
             break
-        vec = l.strip().split(' ')
+        vec = l.strip().split(" ")
         X.append(vec[0])
         Y.append(vec[1:])
     fin.close()

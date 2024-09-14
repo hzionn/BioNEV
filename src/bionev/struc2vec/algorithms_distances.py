@@ -53,27 +53,27 @@ def getCompactDegreeLists(g, root, maxDegree, calcUntilLayer):
         timeToDepthIncrease -= 1
 
         d = len(g[vertex])
-        if (d not in l):
+        if d not in l:
             l[d] = 0
         l[d] += 1
 
         for v in g[vertex]:
-            if (vetor_marcacao[v] == 0):
+            if vetor_marcacao[v] == 0:
                 vetor_marcacao[v] = 1
                 queue.append(v)
                 pendingDepthIncrease += 1
 
-        if (timeToDepthIncrease == 0):
+        if timeToDepthIncrease == 0:
 
             list_d = []
             for degree, freq in l.items():
                 list_d.append((degree, freq))
             list_d.sort(key=lambda x: x[0])
-            listas[depth] = np.array(list_d, dtype=np.int32)
+            listas[depth] = np.array(list_d, dtype=int)
 
             l = {}
 
-            if (calcUntilLayer == depth):
+            if calcUntilLayer == depth:
                 break
 
             depth += 1
@@ -81,7 +81,7 @@ def getCompactDegreeLists(g, root, maxDegree, calcUntilLayer):
             pendingDepthIncrease = 0
 
     t1 = time()
-    logging.info('BFS vertex {}. Time: {}s'.format(root, (t1 - t0)))
+    logging.info("BFS vertex {}. Time: {}s".format(root, (t1 - t0)))
 
     return listas
 
@@ -111,19 +111,19 @@ def getDegreeLists(g, root, calcUntilLayer):
         l.append(len(g[vertex]))
 
         for v in g[vertex]:
-            if (vetor_marcacao[v] == 0):
+            if vetor_marcacao[v] == 0:
                 vetor_marcacao[v] = 1
                 queue.append(v)
                 pendingDepthIncrease += 1
 
-        if (timeToDepthIncrease == 0):
+        if timeToDepthIncrease == 0:
 
-            lp = np.array(l, dtype='float')
+            lp = np.array(l, dtype="float")
             lp = np.sort(lp)
             listas[depth] = lp
             l = deque()
 
-            if (calcUntilLayer == depth):
+            if calcUntilLayer == depth:
                 break
 
             depth += 1
@@ -131,7 +131,7 @@ def getDegreeLists(g, root, calcUntilLayer):
             pendingDepthIncrease = 0
 
     t1 = time()
-    logging.info('BFS vertex {}. Time: {}s'.format(root, (t1 - t0)))
+    logging.info("BFS vertex {}. Time: {}s".format(root, (t1 - t0)))
 
     return listas
 
@@ -140,7 +140,7 @@ def ct(a, b):
     ep = 0.5
     m = max(a, b) + ep
     mi = min(a, b) + ep
-    return ((m / mi) - 1)
+    return (m / mi) - 1
 
 
 def ct_min(a, b):
@@ -159,7 +159,7 @@ def ct_max(a, b):
 
 def preprocess_degreeLists():
     logging.info("Recovering degreeList from disk...")
-    degreeList = restoreVariableFromDisk('degreeList')
+    degreeList = restoreVariableFromDisk("degreeList")
 
     logging.info("Creating compactDegreeList...")
 
@@ -170,7 +170,7 @@ def preprocess_degreeLists():
         for layer, degreeListLayer in layers.items():
             dFrequency[v][layer] = {}
             for degree in degreeListLayer:
-                if (degree not in dFrequency[v][layer]):
+                if degree not in dFrequency[v][layer]:
                     dFrequency[v][layer][degree] = 0
                 dFrequency[v][layer][degree] += 1
     for v, layers in dFrequency.items():
@@ -180,19 +180,19 @@ def preprocess_degreeLists():
             for degree, freq in frequencyList.items():
                 list_d.append((degree, freq))
             list_d.sort(key=lambda x: x[0])
-            dList[v][layer] = np.array(list_d, dtype='float')
+            dList[v][layer] = np.array(list_d, dtype="float")
 
     logging.info("compactDegreeList created!")
 
-    saveVariableOnDisk(dList, 'compactDegreeList')
+    saveVariableOnDisk(dList, "compactDegreeList")
 
 
 def verifyDegrees(degrees, degree_v_root, degree_a, degree_b):
-    if (degree_b == -1):
+    if degree_b == -1:
         degree_now = degree_a
-    elif (degree_a == -1):
+    elif degree_a == -1:
         degree_now = degree_b
-    elif (abs(degree_b - degree_v_root) < abs(degree_a - degree_v_root)):
+    elif abs(degree_b - degree_v_root) < abs(degree_a - degree_v_root):
         degree_now = degree_b
     else:
         degree_now = degree_a
@@ -208,45 +208,45 @@ def get_vertices(v, degree_v, degrees, a_vertices):
     try:
         c_v = 0
 
-        for v2 in degrees[degree_v]['vertices']:
-            if (v != v2):
+        for v2 in degrees[degree_v]["vertices"]:
+            if v != v2:
                 vertices.append(v2)
                 c_v += 1
-                if (c_v > a_vertices_selected):
+                if c_v > a_vertices_selected:
                     raise StopIteration
 
-        if ('before' not in degrees[degree_v]):
+        if "before" not in degrees[degree_v]:
             degree_b = -1
         else:
-            degree_b = degrees[degree_v]['before']
-        if ('after' not in degrees[degree_v]):
+            degree_b = degrees[degree_v]["before"]
+        if "after" not in degrees[degree_v]:
             degree_a = -1
         else:
-            degree_a = degrees[degree_v]['after']
-        if (degree_b == -1 and degree_a == -1):
+            degree_a = degrees[degree_v]["after"]
+        if degree_b == -1 and degree_a == -1:
             raise StopIteration
         degree_now = verifyDegrees(degrees, degree_v, degree_a, degree_b)
 
         while True:
-            for v2 in degrees[degree_now]['vertices']:
-                if (v != v2):
+            for v2 in degrees[degree_now]["vertices"]:
+                if v != v2:
                     vertices.append(v2)
                     c_v += 1
-                    if (c_v > a_vertices_selected):
+                    if c_v > a_vertices_selected:
                         raise StopIteration
 
-            if (degree_now == degree_b):
-                if ('before' not in degrees[degree_b]):
+            if degree_now == degree_b:
+                if "before" not in degrees[degree_b]:
                     degree_b = -1
                 else:
-                    degree_b = degrees[degree_b]['before']
+                    degree_b = degrees[degree_b]["before"]
             else:
-                if ('after' not in degrees[degree_a]):
+                if "after" not in degrees[degree_a]:
                     degree_a = -1
                 else:
-                    degree_a = degrees[degree_a]['after']
+                    degree_a = degrees[degree_a]["after"]
 
-            if (degree_b == -1 and degree_a == -1):
+            if degree_b == -1 and degree_a == -1:
                 raise StopIteration
 
             degree_now = verifyDegrees(degrees, degree_v, degree_a, degree_b)
@@ -259,15 +259,15 @@ def get_vertices(v, degree_v, degrees, a_vertices):
 
 
 def splitDegreeList(part, c, G, compactDegree):
-    if (compactDegree):
+    if compactDegree:
         logging.info("Recovering compactDegreeList from disk...")
-        degreeList = restoreVariableFromDisk('compactDegreeList')
+        degreeList = restoreVariableFromDisk("compactDegreeList")
     else:
         logging.info("Recovering degreeList from disk...")
-        degreeList = restoreVariableFromDisk('degreeList')
+        degreeList = restoreVariableFromDisk("degreeList")
 
     logging.info("Recovering degree vector from disk...")
-    degrees = restoreVariableFromDisk('degrees_vector')
+    degrees = restoreVariableFromDisk("degrees_vector")
 
     degreeListsSelected = {}
     vertices = {}
@@ -280,13 +280,13 @@ def splitDegreeList(part, c, G, compactDegree):
         for n in nbs:
             degreeListsSelected[n] = degreeList[n]
 
-    saveVariableOnDisk(vertices, 'split-vertices-' + str(part))
-    saveVariableOnDisk(degreeListsSelected, 'split-degreeList-' + str(part))
+    saveVariableOnDisk(vertices, "split-vertices-" + str(part))
+    saveVariableOnDisk(degreeListsSelected, "split-degreeList-" + str(part))
 
 
 def calc_distances(part, compactDegree=False):
-    vertices = restoreVariableFromDisk('split-vertices-' + str(part))
-    degreeList = restoreVariableFromDisk('split-degreeList-' + str(part))
+    vertices = restoreVariableFromDisk("split-vertices-" + str(part))
+    degreeList = restoreVariableFromDisk("split-degreeList-" + str(part))
 
     distances = {}
 
@@ -306,15 +306,21 @@ def calc_distances(part, compactDegree=False):
             distances[v1, v2] = {}
 
             for layer in range(0, max_layer):
-                dist, path = fastdtw(lists_v1[layer], lists_v2[layer], radius=1, dist=dist_func)
+                dist, path = fastdtw(
+                    lists_v1[layer], lists_v2[layer], radius=1, dist=dist_func
+                )
 
                 distances[v1, v2][layer] = dist
 
             t11 = time()
-            logging.info('fastDTW between vertices ({}, {}). Time: {}s'.format(v1, v2, (t11 - t00)))
+            logging.info(
+                "fastDTW between vertices ({}, {}). Time: {}s".format(
+                    v1, v2, (t11 - t00)
+                )
+            )
 
     preprocess_consolides_distances(distances)
-    saveVariableOnDisk(distances, 'distances-' + str(part))
+    saveVariableOnDisk(distances, "distances-" + str(part))
     return
 
 
@@ -338,7 +344,9 @@ def calc_distances_all(vertices, list_vertices, degreeList, part, compactDegree=
 
             for layer in range(0, max_layer):
                 # t0 = time()
-                dist, path = fastdtw(lists_v1[layer], lists_v2[layer], radius=1, dist=dist_func)
+                dist, path = fastdtw(
+                    lists_v1[layer], lists_v2[layer], radius=1, dist=dist_func
+                )
                 # t1 = time()
                 # logging.info('D ({} , {}), Tempo fastDTW da camada {} : {}s . Distância: {}'.format(v1,v2,layer,(t1-t0),dist))
                 distances[v1, v2][layer] = dist
@@ -346,7 +354,7 @@ def calc_distances_all(vertices, list_vertices, degreeList, part, compactDegree=
         cont += 1
 
     preprocess_consolides_distances(distances)
-    saveVariableOnDisk(distances, 'distances-' + str(part))
+    saveVariableOnDisk(distances, "distances-" + str(part))
     return
 
 
@@ -354,29 +362,29 @@ def selectVertices(layer, fractionCalcDists):
     previousLayer = layer - 1
 
     logging.info("Recovering distances from disk...")
-    distances = restoreVariableFromDisk('distances')
+    distances = restoreVariableFromDisk("distances")
 
     threshold = calcThresholdDistance(previousLayer, distances, fractionCalcDists)
 
-    logging.info('Selecting vertices...')
+    logging.info("Selecting vertices...")
 
     vertices_selected = deque()
 
     for vertices, layers in distances.items():
-        if (previousLayer not in layers):
+        if previousLayer not in layers:
             continue
-        if (layers[previousLayer] <= threshold):
+        if layers[previousLayer] <= threshold:
             vertices_selected.append(vertices)
 
     distances = {}
 
-    logging.info('Vertices selected.')
+    logging.info("Vertices selected.")
 
     return vertices_selected
 
 
 def preprocess_consolides_distances(distances, startLayer=1):
-    logging.info('Consolidating distances...')
+    logging.info("Consolidating distances...")
 
     for vertices, layers in distances.items():
         keys_layers = sorted(layers.keys())
@@ -387,7 +395,7 @@ def preprocess_consolides_distances(distances, startLayer=1):
         for layer in keys_layers:
             layers[layer] += layers[layer - 1]
 
-    logging.info('Distances consolidated.')
+    logging.info("Distances consolidated.")
 
 
 def exec_bfs_compact(G, workers, calcUntilLayer):
@@ -399,18 +407,20 @@ def exec_bfs_compact(G, workers, calcUntilLayer):
     parts = workers
     chunks = partition(vertices, parts)
 
-    logging.info('Capturing larger degree...')
+    logging.info("Capturing larger degree...")
     maxDegree = 0
     for v in vertices:
-        if (len(G[v]) > maxDegree):
+        if len(G[v]) > maxDegree:
             maxDegree = len(G[v])
-    logging.info('Larger degree captured')
+    logging.info("Larger degree captured")
 
     with ProcessPoolExecutor(max_workers=workers) as executor:
 
         part = 1
         for c in chunks:
-            job = executor.submit(getCompactDegreeListsVertices, G, c, maxDegree, calcUntilLayer)
+            job = executor.submit(
+                getCompactDegreeListsVertices, G, c, maxDegree, calcUntilLayer
+            )
             futures[job] = part
             part += 1
 
@@ -420,9 +430,9 @@ def exec_bfs_compact(G, workers, calcUntilLayer):
             degreeList.update(dl)
 
     logging.info("Saving degreeList on disk...")
-    saveVariableOnDisk(degreeList, 'compactDegreeList')
+    saveVariableOnDisk(degreeList, "compactDegreeList")
     t1 = time()
-    logging.info('Execution time - BFS: {}m'.format((t1 - t0) / 60))
+    logging.info("Execution time - BFS: {}m".format((t1 - t0) / 60))
 
     return
 
@@ -450,9 +460,9 @@ def exec_bfs(G, workers, calcUntilLayer):
             degreeList.update(dl)
 
     logging.info("Saving degreeList on disk...")
-    saveVariableOnDisk(degreeList, 'degreeList')
+    saveVariableOnDisk(degreeList, "degreeList")
     t1 = time()
-    logging.info('Execution time - BFS: {}m'.format((t1 - t0) / 60))
+    logging.info("Execution time - BFS: {}m".format((t1 - t0) / 60))
 
     return
 
@@ -462,21 +472,21 @@ def generate_distances_network_part1(workers):
     weights_distances = {}
     for part in range(1, parts + 1):
 
-        logging.info('Executing part {}...'.format(part))
-        distances = restoreVariableFromDisk('distances-' + str(part))
+        logging.info("Executing part {}...".format(part))
+        distances = restoreVariableFromDisk("distances-" + str(part))
 
         for vertices, layers in distances.items():
             for layer, distance in layers.items():
                 vx = vertices[0]
                 vy = vertices[1]
-                if (layer not in weights_distances):
+                if layer not in weights_distances:
                     weights_distances[layer] = {}
                 weights_distances[layer][vx, vy] = distance
 
-        logging.info('Part {} executed.'.format(part))
+        logging.info("Part {} executed.".format(part))
 
     for layer, values in weights_distances.items():
-        saveVariableOnDisk(values, 'weights_distances-layer-' + str(layer))
+        saveVariableOnDisk(values, "weights_distances-layer-" + str(layer))
     return
 
 
@@ -485,36 +495,38 @@ def generate_distances_network_part2(workers):
     graphs = {}
     for part in range(1, parts + 1):
 
-        logging.info('Executing part {}...'.format(part))
-        distances = restoreVariableFromDisk('distances-' + str(part))
+        logging.info("Executing part {}...".format(part))
+        distances = restoreVariableFromDisk("distances-" + str(part))
 
         for vertices, layers in distances.items():
             for layer, distance in layers.items():
                 vx = vertices[0]
                 vy = vertices[1]
-                if (layer not in graphs):
+                if layer not in graphs:
                     graphs[layer] = {}
-                if (vx not in graphs[layer]):
+                if vx not in graphs[layer]:
                     graphs[layer][vx] = []
-                if (vy not in graphs[layer]):
+                if vy not in graphs[layer]:
                     graphs[layer][vy] = []
                 graphs[layer][vx].append(vy)
                 graphs[layer][vy].append(vx)
-        logging.info('Part {} executed.'.format(part))
+        logging.info("Part {} executed.".format(part))
 
     for layer, values in graphs.items():
-        saveVariableOnDisk(values, 'graphs-layer-' + str(layer))
+        saveVariableOnDisk(values, "graphs-layer-" + str(layer))
 
     return
 
 
 def generate_distances_network_part3():
     layer = 0
-    while (isPickle('graphs-layer-' + str(layer))):
-        graphs = restoreVariableFromDisk('graphs-layer-' + str(layer))
-        weights_distances = restoreVariableFromDisk('weights_distances-layer-' + str(layer))
+    while isPickle("graphs-layer-" + str(layer)):
+        graphs = restoreVariableFromDisk("graphs-layer-" + str(layer))
+        weights_distances = restoreVariableFromDisk(
+            "weights_distances-layer-" + str(layer)
+        )
 
-        logging.info('Executing layer {}...'.format(layer))
+        logging.info("Executing layer {}...".format(layer))
         alias_method_j = {}
         alias_method_q = {}
         weights = {}
@@ -538,46 +550,46 @@ def generate_distances_network_part3():
             alias_method_j[v] = J
             alias_method_q[v] = q
 
-        saveVariableOnDisk(weights, 'distances_nets_weights-layer-' + str(layer))
-        saveVariableOnDisk(alias_method_j, 'alias_method_j-layer-' + str(layer))
-        saveVariableOnDisk(alias_method_q, 'alias_method_q-layer-' + str(layer))
-        logging.info('Layer {} executed.'.format(layer))
+        saveVariableOnDisk(weights, "distances_nets_weights-layer-" + str(layer))
+        saveVariableOnDisk(alias_method_j, "alias_method_j-layer-" + str(layer))
+        saveVariableOnDisk(alias_method_q, "alias_method_q-layer-" + str(layer))
+        logging.info("Layer {} executed.".format(layer))
         layer += 1
 
-    logging.info('Weights created.')
+    logging.info("Weights created.")
 
     return
 
 
 def generate_distances_network_part4():
-    logging.info('Consolidating graphs...')
+    logging.info("Consolidating graphs...")
     graphs_c = {}
     layer = 0
-    while (isPickle('graphs-layer-' + str(layer))):
-        logging.info('Executing layer {}...'.format(layer))
-        graphs = restoreVariableFromDisk('graphs-layer-' + str(layer))
+    while isPickle("graphs-layer-" + str(layer)):
+        logging.info("Executing layer {}...".format(layer))
+        graphs = restoreVariableFromDisk("graphs-layer-" + str(layer))
         graphs_c[layer] = graphs
-        logging.info('Layer {} executed.'.format(layer))
+        logging.info("Layer {} executed.".format(layer))
         layer += 1
 
     logging.info("Saving distancesNets on disk...")
-    saveVariableOnDisk(graphs_c, 'distances_nets_graphs')
-    logging.info('Graphs consolidated.')
+    saveVariableOnDisk(graphs_c, "distances_nets_graphs")
+    logging.info("Graphs consolidated.")
     return
 
 
 def generate_distances_network_part5():
     alias_method_j_c = {}
     layer = 0
-    while (isPickle('alias_method_j-layer-' + str(layer))):
-        logging.info('Executing layer {}...'.format(layer))
-        alias_method_j = restoreVariableFromDisk('alias_method_j-layer-' + str(layer))
+    while isPickle("alias_method_j-layer-" + str(layer)):
+        logging.info("Executing layer {}...".format(layer))
+        alias_method_j = restoreVariableFromDisk("alias_method_j-layer-" + str(layer))
         alias_method_j_c[layer] = alias_method_j
-        logging.info('Layer {} executed.'.format(layer))
+        logging.info("Layer {} executed.".format(layer))
         layer += 1
 
     logging.info("Saving nets_weights_alias_method_j on disk...")
-    saveVariableOnDisk(alias_method_j_c, 'nets_weights_alias_method_j')
+    saveVariableOnDisk(alias_method_j_c, "nets_weights_alias_method_j")
 
     return
 
@@ -585,30 +597,32 @@ def generate_distances_network_part5():
 def generate_distances_network_part6():
     alias_method_q_c = {}
     layer = 0
-    while (isPickle('alias_method_q-layer-' + str(layer))):
-        logging.info('Executing layer {}...'.format(layer))
-        alias_method_q = restoreVariableFromDisk('alias_method_q-layer-' + str(layer))
+    while isPickle("alias_method_q-layer-" + str(layer)):
+        logging.info("Executing layer {}...".format(layer))
+        alias_method_q = restoreVariableFromDisk("alias_method_q-layer-" + str(layer))
         alias_method_q_c[layer] = alias_method_q
-        logging.info('Layer {} executed.'.format(layer))
+        logging.info("Layer {} executed.".format(layer))
         layer += 1
 
     logging.info("Saving nets_weights_alias_method_q on disk...")
-    saveVariableOnDisk(alias_method_q_c, 'nets_weights_alias_method_q')
+    saveVariableOnDisk(alias_method_q_c, "nets_weights_alias_method_q")
 
     return
 
 
 def generate_distances_network(workers):
     t0 = time()
-    logging.info('Creating distance network...')
+    logging.info("Creating distance network...")
 
-    os.system("rm " + returnPathStruc2vec() + "/pickles/weights_distances-layer-*.pickle")
+    os.system(
+        "rm " + returnPathStruc2vec() + "/pickles/weights_distances-layer-*.pickle"
+    )
     with ProcessPoolExecutor(max_workers=1) as executor:
         job = executor.submit(generate_distances_network_part1, workers)
         job.result()
     t1 = time()
     t = t1 - t0
-    logging.info('- Time - part 1: {}s'.format(t))
+    logging.info("- Time - part 1: {}s".format(t))
 
     t0 = time()
     os.system("rm " + returnPathStruc2vec() + "/pickles/graphs-layer-*.pickle")
@@ -617,13 +631,15 @@ def generate_distances_network(workers):
         job.result()
     t1 = time()
     t = t1 - t0
-    logging.info('- Time - part 2: {}s'.format(t))
-    logging.info('distance network created.')
+    logging.info("- Time - part 2: {}s".format(t))
+    logging.info("distance network created.")
 
-    logging.info('Transforming distances into weights...')
+    logging.info("Transforming distances into weights...")
 
     t0 = time()
-    os.system("rm " + returnPathStruc2vec() + "/pickles/distances_nets_weights-layer-*.pickle")
+    os.system(
+        "rm " + returnPathStruc2vec() + "/pickles/distances_nets_weights-layer-*.pickle"
+    )
     os.system("rm " + returnPathStruc2vec() + "/pickles/alias_method_j-layer-*.pickle")
     os.system("rm " + returnPathStruc2vec() + "/pickles/alias_method_q-layer-*.pickle")
     with ProcessPoolExecutor(max_workers=1) as executor:
@@ -631,7 +647,7 @@ def generate_distances_network(workers):
         job.result()
     t1 = time()
     t = t1 - t0
-    logging.info('- Time - part 3: {}s'.format(t))
+    logging.info("- Time - part 3: {}s".format(t))
 
     t0 = time()
     with ProcessPoolExecutor(max_workers=1) as executor:
@@ -639,7 +655,7 @@ def generate_distances_network(workers):
         job.result()
     t1 = time()
     t = t1 - t0
-    logging.info('- Time - part 4: {}s'.format(t))
+    logging.info("- Time - part 4: {}s".format(t))
 
     t0 = time()
     with ProcessPoolExecutor(max_workers=1) as executor:
@@ -647,7 +663,7 @@ def generate_distances_network(workers):
         job.result()
     t1 = time()
     t = t1 - t0
-    logging.info('- Time - part 5: {}s'.format(t))
+    logging.info("- Time - part 5: {}s".format(t))
 
     t0 = time()
     with ProcessPoolExecutor(max_workers=1) as executor:
@@ -655,20 +671,20 @@ def generate_distances_network(workers):
         job.result()
     t1 = time()
     t = t1 - t0
-    logging.info('- Time - part 6: {}s'.format(t))
+    logging.info("- Time - part 6: {}s".format(t))
 
     return
 
 
 def alias_setup(probs):
-    '''
+    """
     Compute utility lists for non-uniform sampling from discrete distributions.
     Refer to https://hips.seas.harvard.edu/blog/2013/03/03/the-alias-method-efficient-sampling-with-many-discrete-outcomes/
     for details
-    '''
+    """
     K = len(probs)
     q = np.zeros(K)
-    J = np.zeros(K, dtype=np.int)
+    J = np.zeros(K, dtype=int)
 
     smaller = []
     larger = []

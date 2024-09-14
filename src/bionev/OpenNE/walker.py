@@ -16,9 +16,9 @@ class BasicWalker:
         self.look_up_dict = G.look_up_dict
 
     def deepwalk_walk(self, walk_length, start_node):
-        '''
+        """
         Simulate a random walk starting from start node.
-        '''
+        """
         G = self.G
         look_up_dict = self.look_up_dict
         node_size = self.node_size
@@ -35,25 +35,26 @@ class BasicWalker:
         return walk
 
     def simulate_walks(self, num_walks, walk_length):
-        '''
+        """
         Repeatedly simulate random walks from each node.
-        '''
+        """
         G = self.G
         walks = []
         nodes = list(G.nodes())
-        print('Begin random walks...')
+        print("Begin random walks...")
         for walk_iter in range(num_walks):
             # pool = multiprocessing.Pool(processes = 4)
             # print(str(walk_iter+1), '/', str(num_walks))
             random.shuffle(nodes)
             for node in nodes:
                 # walks.append(pool.apply_async(deepwalk_walk_wrapper, (self, walk_length, node, )))
-                walks.append(self.deepwalk_walk(
-                    walk_length=walk_length, start_node=node))
+                walks.append(
+                    self.deepwalk_walk(walk_length=walk_length, start_node=node)
+                )
             # pool.close()
             # pool.join()
         # print(len(walks))
-        print('Walk finished...')
+        print("Walk finished...")
         return walks
 
 
@@ -66,9 +67,9 @@ class Walker:
         self.look_up_dict = G.look_up_dict
 
     def node2vec_walk(self, walk_length, start_node):
-        '''
+        """
         Simulate a random walk starting from start node.
-        '''
+        """
         G = self.G
         alias_nodes = self.alias_nodes
         alias_edges = self.alias_edges
@@ -83,12 +84,14 @@ class Walker:
             if len(cur_nbrs) > 0:
                 if len(walk) == 1:
                     walk.append(
-                        cur_nbrs[alias_draw(alias_nodes[cur][0], alias_nodes[cur][1])])
+                        cur_nbrs[alias_draw(alias_nodes[cur][0], alias_nodes[cur][1])]
+                    )
                 else:
                     prev = walk[-2]
                     pos = (prev, cur)
-                    next = cur_nbrs[alias_draw(alias_edges[pos][0],
-                                               alias_edges[pos][1])]
+                    next = cur_nbrs[
+                        alias_draw(alias_edges[pos][0], alias_edges[pos][1])
+                    ]
                     walk.append(next)
             else:
                 break
@@ -96,26 +99,27 @@ class Walker:
         return walk
 
     def simulate_walks(self, num_walks, walk_length):
-        '''
+        """
         Repeatedly simulate random walks from each node.
-        '''
+        """
         G = self.G
         walks = []
         nodes = list(G.nodes())
-        print('Begin random walk...')
+        print("Begin random walk...")
         for walk_iter in range(num_walks):
             # print(str(walk_iter+1), '/', str(num_walks))
             random.shuffle(nodes)
             for node in nodes:
-                walks.append(self.node2vec_walk(
-                    walk_length=walk_length, start_node=node))
-        print('Walk finished...')
+                walks.append(
+                    self.node2vec_walk(walk_length=walk_length, start_node=node)
+                )
+        print("Walk finished...")
         return walks
 
     def get_alias_edge(self, src, dst):
-        '''
+        """
         Get the alias edge setup lists for a given edge.
-        '''
+        """
         G = self.G
         p = self.p
         q = self.q
@@ -123,30 +127,29 @@ class Walker:
         unnormalized_probs = []
         for dst_nbr in G.neighbors(dst):
             if dst_nbr == src:
-                unnormalized_probs.append(G[dst][dst_nbr]['weight'] / p)
+                unnormalized_probs.append(G[dst][dst_nbr]["weight"] / p)
             elif G.has_edge(dst_nbr, src):
-                unnormalized_probs.append(G[dst][dst_nbr]['weight'])
+                unnormalized_probs.append(G[dst][dst_nbr]["weight"])
             else:
-                unnormalized_probs.append(G[dst][dst_nbr]['weight'] / q)
+                unnormalized_probs.append(G[dst][dst_nbr]["weight"] / q)
         norm_const = sum(unnormalized_probs)
-        normalized_probs = [
-            float(u_prob) / norm_const for u_prob in unnormalized_probs]
+        normalized_probs = [float(u_prob) / norm_const for u_prob in unnormalized_probs]
 
         return alias_setup(normalized_probs)
 
     def preprocess_transition_probs(self):
-        '''
+        """
         Preprocessing of transition probabilities for guiding the random walks.
-        '''
+        """
         G = self.G
 
         alias_nodes = {}
         for node in G.nodes():
-            unnormalized_probs = [G[node][nbr]['weight']
-                                  for nbr in G.neighbors(node)]
+            unnormalized_probs = [G[node][nbr]["weight"] for nbr in G.neighbors(node)]
             norm_const = sum(unnormalized_probs)
             normalized_probs = [
-                float(u_prob) / norm_const for u_prob in unnormalized_probs]
+                float(u_prob) / norm_const for u_prob in unnormalized_probs
+            ]
             alias_nodes[node] = alias_setup(normalized_probs)
 
         alias_edges = {}
@@ -164,11 +167,11 @@ class Walker:
 
 
 def alias_setup(probs):
-    '''
+    """
     Compute utility lists for non-uniform sampling from discrete distributions.
     Refer to https://hips.seas.harvard.edu/blog/2013/03/03/the-alias-method-efficient-sampling-with-many-discrete-outcomes/
     for details
-    '''
+    """
     K = len(probs)
     q = np.zeros(K, dtype=np.float32)
     J = np.zeros(K, dtype=np.int32)
@@ -197,9 +200,9 @@ def alias_setup(probs):
 
 
 def alias_draw(J, q):
-    '''
+    """
     Draw sample from a non-uniform discrete distribution using alias sampling.
-    '''
+    """
     K = len(J)
 
     kk = int(np.floor(np.random.rand() * K))

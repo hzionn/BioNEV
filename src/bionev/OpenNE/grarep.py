@@ -10,7 +10,7 @@ class GraRep(object):
     def __init__(self, graph, Kstep, dim):
         self.g = graph
         self.Kstep = Kstep
-        assert dim % Kstep == 0
+        assert dim % Kstep == 0, "the total dimensions should be divisible by Kstep"
         self.dim = int(dim / Kstep)
         self.train()
 
@@ -32,30 +32,40 @@ class GraRep(object):
         # print(np.min(tileMat))
         probTranMat = np.log(Ak / tileMat) - np.log(1.0 / self.node_size)
         probTranMat[probTranMat < 0] = 0
-        probTranMat[probTranMat == np.nan] = 0
+        probTranMat[np.isneginf(probTranMat)] = 0
+        probTranMat[np.isnan(probTranMat)] = 0
+        # probTranMat[probTranMat == np.nan] = 0
         return probTranMat
 
     def GetRepUseSVD(self, probTranMat, alpha):
         # U, S, VT = la.svd(probTranMat)
+        k = min(self.dim, min(probTranMat.shape) - 1)
+        if k <= 0:
+            raise ValueError("something just wrong")
 
-        U, Sigma, VT = svds(probTranMat, self.dim)
+        U, Sigma, VT = svds(probTranMat, k=k)
         # print("finish svd..")
         Sigma = np.diag(Sigma)
         W = np.matmul(U, np.power(Sigma, alpha))
         C = np.matmul(VT.T, np.power(Sigma, alpha))
         # print(np.sum(U))
         embeddings = W + C
+        if embeddings.shape[1] < self.dim:
+            padding = np.zeros((embeddings.shape[0], self.dim - embeddings.shape[1]))
+            embeddings = np.hstack((embeddings, padding))
+        elif embeddings.shape[1] > self.dim:
+            embeddings = embeddings[:, : self.dim]
         return embeddings
         # Ud = U[:, 0:self.dim]
         # Sd = S[0:self.dim]
         # return np.array(Ud)*np.power(Sd, alpha).reshape((self.dim))
 
     def save_embeddings(self, filename):
-        fout = open(filename, 'w')
+        fout = open(filename, "w")
         node_num = len(self.vectors.keys())
         fout.write("{} {}\n".format(node_num, self.Kstep * self.dim))
         for node, vec in self.vectors.items():
-            fout.write("{} {}\n".format(node, ' '.join([str(x) for x in vec])))
+            fout.write("{} {}\n".format(node, " ".join([str(x) for x in vec])))
         fout.close()
 
     def train(self):
@@ -64,16 +74,16 @@ class GraRep(object):
         self.Ak = np.matrix(np.identity(self.node_size))
         self.RepMat = np.zeros((self.node_size, int(self.dim * self.Kstep)))
         for i in range(self.Kstep):
-            print('Kstep =', i)
+            print("Kstep =", i)
             self.Ak = np.dot(self.Ak, self.adj)
             # print('finish np.dot(self.Ak, self.adj)')
             probTranMat = self.GetProbTranMat(self.Ak)
             # print('finish GetProbTranMat')
             Rk = self.GetRepUseSVD(probTranMat, 0.5)
             # print('finish GetRepUseSVD')
-            Rk = normalize(Rk, axis=1, norm='l2')
+            Rk = normalize(Rk, axis=1, norm="l2")
             # print('finish normalize')
-            self.RepMat[:, self.dim * i:self.dim * (i + 1)] = Rk[:, :]
+            self.RepMat[:, self.dim * i : self.dim * (i + 1)] = Rk[:, :]
             # print('finish RepMat[:, self.dim*i:self.dim*(i+1)] = Rk[:, :]')
         # get embeddings
         self.vectors = {}

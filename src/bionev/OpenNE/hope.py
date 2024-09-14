@@ -10,9 +10,9 @@ __email__ = "alan1995wang@outlook.com"
 
 class HOPE(object):
     def __init__(self, graph, d):
-        '''
-          d: representation vector dimension
-        '''
+        """
+        d: representation vector dimension
+        """
         self._d = d
         self._graph = graph.G
         self.g = graph
@@ -22,7 +22,7 @@ class HOPE(object):
     def learn_embedding(self):
 
         graph = self.g.G
-        A = nx.to_numpy_matrix(graph)
+        A = nx.to_numpy_array(graph)
 
         # self._beta = 0.0728
 
@@ -34,7 +34,11 @@ class HOPE(object):
 
         S = np.dot(np.linalg.inv(M_g), M_l)
         # s: \sigma_k
-        u, s, vt = lg.svds(S, k=self._d // 2)
+        k = min(self._d // 2, min(S.shape) - 1)
+        if k <= 0:
+            raise ValueError("something just wrong")
+
+        u, s, vt = lg.svds(S, k=k)
         sigma = np.diagflat(np.sqrt(s))
         X1 = np.dot(u, sigma)
         X2 = np.dot(vt.T, sigma)
@@ -50,10 +54,8 @@ class HOPE(object):
         return vectors
 
     def save_embeddings(self, filename):
-        fout = open(filename, 'w')
-        node_num = len(self.vectors.keys())
-        fout.write("{} {}\n".format(node_num, self._d))
-        for node, vec in self.vectors.items():
-            fout.write("{} {}\n".format(node,
-                                        ' '.join([str(x) for x in vec])))
-        fout.close()
+        with open(filename, "w") as fout:
+            node_num = len(self.vectors.keys())
+            fout.write("{} {}\n".format(node_num, self._d))
+            for node, vec in self.vectors.items():
+                fout.write("{} {}\n".format(node, " ".join([str(x) for x in vec])))

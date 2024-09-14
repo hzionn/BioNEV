@@ -2,6 +2,8 @@ import networkx as nx
 import numpy as np
 from scipy.sparse.linalg import svds
 
+# TODO: fix tensorflow version conflicts
+
 
 def SVD_embedding(G, output_filename, size=100):
     node_list = list(G.nodes())
@@ -18,12 +20,11 @@ def SVD_embedding(G, output_filename, size=100):
     for id, node in enumerate(node_list):
         vectors[node] = list(np.array(embeddings[id]))
 
-    fout = open(output_filename, 'w')
+    fout = open(output_filename, "w")
     node_num = len(vectors.keys())
     fout.write("{} {}\n".format(node_num, size))
     for node, vec in vectors.items():
-        fout.write("{} {}\n".format(node,
-                                    ' '.join([str(x) for x in vec])))
+        fout.write("{} {}\n".format(node, " ".join([str(x) for x in vec])))
     fout.close()
 
     return
